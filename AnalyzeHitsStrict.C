@@ -80,6 +80,9 @@ void AnalyzeHitsStrict() {
         durationMax[2] = 0;
         durationMax[3] = 0;
 
+        int numLargePulse = 0;
+        int numSmallPulse = 0;
+
 
 
         // Loop through all hits in the event
@@ -124,7 +127,15 @@ void AnalyzeHitsStrict() {
                 }
             }
             //if(nPEMax[0]<400 && nPEMax[0]>10  && nPEMax[1]<400 && nPEMax[1]>10  && nPEMax[2]<400 && nPEMax[2]>10  && nPEMax[3]<400 && nPEMax[3]>10 && durationMax[0] < 1200 && durationMax[1]<1200 && durationMax[2]<1200){
-            if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
+            //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
+            
+            //find the number of large pulse and  small pulse
+            for (size_t k = 0; k < 4; k++){
+            if (nPEMax[k] > 40 && nPEMax[k] < 180 ) { numSmallPulse += 1;}
+            if (nPEMax[k] >200  ) { numLargePulse += 1;}
+            }
+            //case for finding 3 large pulse and 1 small pulse
+            if (numLargePulse == 3 && numSmallPulse == 1) {
             nPEBars.push_back(nPEMax[0]);
             nPEBars.push_back(nPEMax[1]);
             nPEBars.push_back(nPEMax[2]);
