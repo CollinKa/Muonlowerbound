@@ -53,6 +53,7 @@ void AnalyzeHitsStrict() {
     std::vector<float> nPEBars;
     std::vector<float> nPE4Bars;
     std::vector<float> duration4Bars;
+    std::vector<float> Dt;
     double nPEMax[4];
     double durationMax[4];
     double Pulse4Max[4];
@@ -137,9 +138,9 @@ void AnalyzeHitsStrict() {
                    }
                 }
             }
-            //if(nPEMax[0]<400 && nPEMax[0]>10  && nPEMax[1]<400 && nPEMax[1]>10  && nPEMax[2]<400 && nPEMax[2]>10  && nPEMax[3]<400 && nPEMax[3]>10 && durationMax[0] < 1200 && durationMax[1]<1200 && durationMax[2]<1200){
+            if(nPEMax[0]<150 && nPEMax[0]>50  && nPEMax[1]<150 && nPEMax[1]>50  && nPEMax[2]<150 && nPEMax[2]>50  && nPEMax[3]<150 && nPEMax[3]>50){
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
-            
+            //if(nPEMax[0]>200 && nPEMax[1]> 200  && nPEMax[2]> 200  && nPEMax[3]> 200){
             //find the number of large pulse and  small pulse
             //for (size_t k = 0; k < 4; k++){
             //if (nPEMax[k] > 5 && nPEMax[k] < 40 ) { numSmallPulse += 1;}
@@ -166,11 +167,11 @@ void AnalyzeHitsStrict() {
                 if(Pulse4Max[i] < minVal){
                     minVal= Pulse4Max[i];
                 }
-            }
+             }
             
             //find the event that max Dt < 5ns for pulse in big hit layer
-            if (maxVal - minVal <= 3){
-
+            //if (maxVal - minVal <= 3){
+            double DtF = maxVal - minVal;
             nPEBars.push_back(nPEMax[0]);
             nPEBars.push_back(nPEMax[1]);
             nPEBars.push_back(nPEMax[2]);
@@ -191,6 +192,7 @@ void AnalyzeHitsStrict() {
 
             //if ((uniqueBars.size() == 5) && ((uniqueBars.size() == 4))){
             if (uniqueBars.size() == 4){
+                Dt.push_back(DtF);
                 nPE4Bars.push_back(nPEMax[0]);
                 nPE4Bars.push_back(nPEMax[1]);
                 nPE4Bars.push_back(nPEMax[2]);
@@ -258,6 +260,16 @@ void AnalyzeHitsStrict() {
     hDuration4Bars->GetYaxis()->SetTitle("Events");
     hDuration4Bars->Draw();
 
+
+
+
+    TCanvas *c5 = new TCanvas("c5", "c5", 800, 600);
+    TH1F *Dt4bar = new TH1F("Dt4bar", "Dt(ns)", 42, -1, 20);
+    for (size_t k = 0; k < Dt.size(); k++) {
+        Dt4bar->Fill(Dt[k]);
+    }
+    Dt4bar->GetYaxis()->SetTitle("Events");
+    Dt4bar->Draw();
 
 
     
