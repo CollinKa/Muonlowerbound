@@ -55,6 +55,7 @@ void AnalyzeHitsStrict() {
     std::vector<float> duration4Bars;
     double nPEMax[4];
     double durationMax[4];
+    double Pulse4Max[4];
         
 
 
@@ -79,6 +80,13 @@ void AnalyzeHitsStrict() {
         durationMax[1] = 0;
         durationMax[2] = 0;
         durationMax[3] = 0;
+
+
+        Pulse4Max[0]=0;
+        Pulse4Max[1]=0;
+        Pulse4Max[2]=0;
+        Pulse4Max[3]=0;
+
 
         int numLargePulse = 0;
         int numSmallPulse = 0;
@@ -119,7 +127,10 @@ void AnalyzeHitsStrict() {
                         std::cout << "NPE " << (*nPE)[j] << "Row/Col/Layer: " << (*row)[j] << " " << (*column)[j] << " " << (*layer)[j] << std::endl;
                     
                         //find the max pusle duration at each row
-                        if((*duration)[j]>durationMax[(*row)[j]] ) durationMax[(*row)[j]] = (*duration)[j];
+                        if((*duration)[j]>durationMax[(*row)[j]] ) { 
+                            durationMax[(*row)[j]] = (*duration)[j];
+                            Pulse4Max[(*row)[j]] = (*timeFit_module_calibrated)[j];               
+                        }
 
 
 
@@ -130,12 +141,36 @@ void AnalyzeHitsStrict() {
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
             
             //find the number of large pulse and  small pulse
-            for (size_t k = 0; k < 4; k++){
-            if (nPEMax[k] > 40 && nPEMax[k] < 180 ) { numSmallPulse += 1;}
-            if (nPEMax[k] >200  ) { numLargePulse += 1;}
-            }
+            //for (size_t k = 0; k < 4; k++){
+            //if (nPEMax[k] > 5 && nPEMax[k] < 40 ) { numSmallPulse += 1;}
+            //if (nPEMax[k] >200  ) { numLargePulse += 1;}
+            //}
             //case for finding 3 large pulse and 1 small pulse
-            if (numLargePulse == 3 && numSmallPulse == 1) {
+            //if (numLargePulse == 3 && numSmallPulse == 1) {
+
+            
+
+            //find the first (bar) pulse in big hit layer
+            double maxVal = 0.0;
+            for(int i = 0; i < 4; i++) {
+                if(Pulse4Max[i] > maxVal){
+                    maxVal = Pulse4Max[i];
+                }           
+ 
+            }
+            
+
+            //find the last (bar)pulse
+            double minVal = 3000.0;
+            for(int i = 0; i < 4; i++) {
+                if(Pulse4Max[i] < minVal){
+                    minVal= Pulse4Max[i];
+                }
+            }
+            
+            //find the event that max Dt < 5ns for pulse in big hit layer
+            if (maxVal - minVal <= 3){
+
             nPEBars.push_back(nPEMax[0]);
             nPEBars.push_back(nPEMax[1]);
             nPEBars.push_back(nPEMax[2]);
