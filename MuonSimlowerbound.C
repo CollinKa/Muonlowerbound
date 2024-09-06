@@ -29,6 +29,7 @@ void MuonSimlowerbound() {
     std::vector<int> *column = 0;
     std::vector<int> *layer = 0;
     std::vector<int> *type = 0;
+    std::vector<int> *muonHit = 0;
     std::vector<float> *nPE = 0;
     //std::vector<int> *ipulse = 0;
     std::vector<float> *duration = 0;
@@ -43,7 +44,7 @@ void MuonSimlowerbound() {
     t->SetBranchAddress("layer", &layer);
     t->SetBranchAddress("type", &type);
     t->SetBranchAddress("nPE", &nPE);
-    //t->SetBranchAddress("ipulse", &ipulse);
+    t->SetBranchAddress("muonHit", &muonHit);
     
     t->SetBranchAddress("event", &event);
     //t->SetBranchAddress("duration", &duration);
@@ -74,6 +75,8 @@ void MuonSimlowerbound() {
         bool barHit1 = false;
         bool panelHit2 = false;
         bool barHit2 = false;
+        bool Muonlay0 = false;
+        bool Muonlay3 = false;
         bigLayer=-2;
         std::set<int> uniqueBars;
 
@@ -117,10 +120,18 @@ void MuonSimlowerbound() {
 //                if((*nPE)[j]>nPEMax[0]) nPEMax[0]=(*nPE)[j];
                 //cout << "big hit! NPE " << (*nPE)[j] << "Row/Col/Layer: " << (*row)[j] << " " << (*column)[j] << " " << (*layer)[j] << std::endl;
             }
+            
+
+            //check muon pdg
+            if ( ((*layer)[j] == 0) && (*type)[j]==0 && (*muonHit)[j] == 1 ) {Muonlay0 = true;}
+            if ( ((*layer)[j] == 3) && (*type)[j]==0 && (*muonHit)[j] == 1 ) {Muonlay3 = true;}
+
         }
 
         // If both conditions are satisfied, count unique hits with nPE > 0.5
-        if ((panelHit1 && barHit1) || (panelHit2 && barHit2)) {
+        if(Muonlay0 && Muonlay3){
+        //if ((panelHit1 && barHit1) || (panelHit2 && barHit2)) {
+        //if ((panelHit1 && barHit1 && Muonlay0 && Muonlay3) || (panelHit2 && barHit2 && Muonlay0 && Muonlay3)) {
             for (size_t j = 0; j < row->size(); j++) {
                 if ((*type)[j] == 0 && (*nPE)[j] > 2) {
                     uniqueBars.insert((*row)[j]+4*(*column)[j]+16*(*layer)[j]);
@@ -150,10 +161,9 @@ void MuonSimlowerbound() {
                 
 
             }
-
+            //count the number row under big hit layer is above TH.
             if (count >=3) { 
-            //find the smallest pulse
-            //SPnPE.push_back(minNpe);
+            
 
 
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
@@ -283,7 +293,7 @@ void MuonSimlowerbound() {
 
    //find the correlation btw Dt and size of small pulse(it might not be small).
    TCanvas *c6 = new TCanvas("c6", "c6", 800, 600);
-   TH2F *SPnPEDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 40, 0, 500,40,0,40); 
+   TH2F *SPnPEDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 40, 0, 2500,40,0,40); 
    for (size_t k = 0; k < Dt.size(); k++) {
        SPnPEDt->Fill(SPnPE[k],Dt[k]);
    }
