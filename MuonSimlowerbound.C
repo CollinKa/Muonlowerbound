@@ -48,7 +48,9 @@ void MuonSimlowerbound() {
     t->SetBranchAddress("event", &event);
     //t->SetBranchAddress("duration", &duration);
     //t->SetBranchAddress("timeFit_module_calibrated", &timeFit_module_calibrated);
-    t->SetBranchAddress("time", &time);
+    //t->SetBranchAddress("time", &time); //scinttime
+    t->SetBranchAddress("pmt_time", &time); //save the data in pmt_time to time variable.
+    
     Long64_t nentries = t->GetEntries();
 
     std::vector<int> uniqueBarCounts;
@@ -133,7 +135,27 @@ void MuonSimlowerbound() {
                 }
             }
             //if(nPEMax[0]<70 && nPEMax[0]>20  && nPEMax[1]<70 && nPEMax[1]>20  && nPEMax[2]<70 && nPEMax[2]>20  && nPEMax[3]<70 && nPEMax[3]>20){
-            if(nPEMax[0] > 2000  && nPEMax[1]>2000 && nPEMax[2]>2000){
+            //if(nPEMax[0] > 2000  && nPEMax[1]>2000 && nPEMax[2]>2000){
+            int count = 0;
+            double minNpe = 5000;
+            for (size_t k = 0; k < 4; k++){
+                if(nPEMax[k] > 2000) {
+                    count += 1;
+                }
+                if(nPEMax[k] < minNpe){
+                minNpe = nPEMax[k];
+                                
+                }
+                
+                
+
+            }
+
+            if (count >=3) { 
+            //find the smallest pulse
+            //SPnPE.push_back(minNpe);
+
+
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
             //if(nPEMax[0]>200 && nPEMax[1]> 200  && nPEMax[2]> 200  && nPEMax[3]> 200){
             //find the number of large pulse and  small pulse
@@ -193,7 +215,8 @@ void MuonSimlowerbound() {
                 nPE4Bars.push_back(nPEMax[1]);
                 nPE4Bars.push_back(nPEMax[2]);
                 nPE4Bars.push_back(nPEMax[3]);
-                SPnPE.push_back(nPEMax[3]); 
+                //SPnPE.push_back(nPEMax[3]);
+                SPnPE.push_back(minNpe);
                 if (DtF > 10){               
                      std::cout << "uniqueBars.size(): " << uniqueBars.size() << std::endl;
                      std::cout << "4 bar Event Number: " << (event) << std::endl;
