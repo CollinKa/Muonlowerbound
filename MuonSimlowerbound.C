@@ -20,7 +20,7 @@ with muon like hits search for the pulse delay from the small pulses.
 void MuonSimlowerbound() {
     // Open the file and get the TTree
     //TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/cosmicSim/flat/withoutgama/out_110.root"); //can't make dtNPE plot for unknown reason
-    TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/cosmicSim/flat/gama/merge1k.root");
+    TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/cosmicSim/flat/gama/NewMerge.root");
     //TFile *file = TFile::Open("Run1679.root");
     TTree *t = (TTree*)file->Get("t");
 
@@ -35,8 +35,9 @@ void MuonSimlowerbound() {
     std::vector<float> *time = 0;
     //Long64_t fileNumber = 0;
     Int_t event = 0; //event number
-
+    Int_t runNumber = 0; //file number
     // Set branch addresses
+    t->SetBranchAddress("runNumber", &runNumber);
     t->SetBranchAddress("row", &row);
     t->SetBranchAddress("column", &column);
     t->SetBranchAddress("layer", &layer);
@@ -193,10 +194,10 @@ void MuonSimlowerbound() {
                 nPE4Bars.push_back(nPEMax[2]);
                 nPE4Bars.push_back(nPEMax[3]);
                 SPnPE.push_back(nPEMax[3]); 
-                if (DtF > 7){               
+                if (DtF > 10){               
                      std::cout << "uniqueBars.size(): " << uniqueBars.size() << std::endl;
                      std::cout << "4 bar Event Number: " << (event) << std::endl;
-                     //std::cout << "File Number: " << (fileNumber) << std::endl;
+                     std::cout << "File Number: " << (runNumber) << std::endl;
                 }
             }
 
@@ -259,7 +260,7 @@ void MuonSimlowerbound() {
 
    //find the correlation btw Dt and size of small pulse(it might not be small).
    TCanvas *c6 = new TCanvas("c6", "c6", 800, 600);
-   TH2F *SPnPEDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 40, 0, 10000,40,0,40); 
+   TH2F *SPnPEDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 40, 0, 500,40,0,40); 
    for (size_t k = 0; k < Dt.size(); k++) {
        SPnPEDt->Fill(SPnPE[k],Dt[k]);
    }
