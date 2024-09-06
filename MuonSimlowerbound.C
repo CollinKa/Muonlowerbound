@@ -39,11 +39,11 @@ void MuonSimlowerbound() {
     Int_t runNumber = 0; //file number
     // Set branch addresses
     t->SetBranchAddress("runNumber", &runNumber);
-    t->SetBranchAddress("row", &row);
-    t->SetBranchAddress("column", &column);
-    t->SetBranchAddress("layer", &layer);
-    t->SetBranchAddress("type", &type);
-    t->SetBranchAddress("nPE", &nPE);
+    t->SetBranchAddress("pmt_row", &row);
+    t->SetBranchAddress("pmt_column", &column);
+    t->SetBranchAddress("pmt_layer", &layer);
+    t->SetBranchAddress("pmt_type", &type);
+    t->SetBranchAddress("pmt_nPE", &nPE);
     t->SetBranchAddress("muonHit", &muonHit);
     
     t->SetBranchAddress("event", &event);
@@ -129,8 +129,8 @@ void MuonSimlowerbound() {
         }
 
         // If both conditions are satisfied, count unique hits with nPE > 0.5
-        if(Muonlay0 && Muonlay3){
-        //if ((panelHit1 && barHit1) || (panelHit2 && barHit2)) {
+        //if(Muonlay0 && Muonlay3){
+        if ((panelHit1 && barHit1) || (panelHit2 && barHit2)) {
         //if ((panelHit1 && barHit1 && Muonlay0 && Muonlay3) || (panelHit2 && barHit2 && Muonlay0 && Muonlay3)) {
             for (size_t j = 0; j < row->size(); j++) {
                 if ((*type)[j] == 0 && (*nPE)[j] > 2) {
@@ -293,7 +293,7 @@ void MuonSimlowerbound() {
 
    //find the correlation btw Dt and size of small pulse(it might not be small).
    TCanvas *c6 = new TCanvas("c6", "c6", 800, 600);
-   TH2F *SPnPEDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 40, 0, 2500,40,0,40); 
+   TH2F *SPnPEDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 40, 0, 500,40,0,40); 
    for (size_t k = 0; k < Dt.size(); k++) {
        SPnPEDt->Fill(SPnPE[k],Dt[k]);
    }
