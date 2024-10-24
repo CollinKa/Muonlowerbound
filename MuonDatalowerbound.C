@@ -19,7 +19,8 @@ with muon like hits search for the pulse delay from the small pulses.
 
 void MuonDatalowerbound() {
     // Open the file and get the TTree
-    TFile *file = TFile::Open("/net/cms17/cms17r0/schmitz/milliQanMerged/MilliQan_Run1176.root");
+    //TFile *file = TFile::Open("/net/cms17/cms17r0/schmitz/milliQanMerged/MilliQan_Run1176.root"); //V34 merged
+    TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/M1176V35_merged.root");
     //TFile *file = TFile::Open("Run1679.root");
     TTree *t = (TTree*)file->Get("t");
 
@@ -140,7 +141,7 @@ void MuonDatalowerbound() {
                 }
             }
             //if(nPEMax[0]<70 && nPEMax[0]>20  && nPEMax[1]<70 && nPEMax[1]>20  && nPEMax[2]<70 && nPEMax[2]>20  && nPEMax[3]<70 && nPEMax[3]>20){
-            if(nPEMax[0] > 100  && nPEMax[1]>100 && nPEMax[2]>100){
+            if(nPEMax[1] > 100  && nPEMax[2]>100 && nPEMax[3]>100){
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
             //if(nPEMax[0]>200 && nPEMax[1]> 200  && nPEMax[2]> 200  && nPEMax[3]> 200){
             //find the number of large pulse and  small pulse
@@ -193,20 +194,24 @@ void MuonDatalowerbound() {
 
 
             //if ((uniqueBars.size() == 5) && ((uniqueBars.size() == 4))){
-            if (uniqueBars.size() >= 4 && uniqueBars.size() <= 6 ){
+            if (uniqueBars.size() >= 4 && uniqueBars.size() <= 10 ){
                 Dt.push_back(DtF);
                 nPE4Bars.push_back(nPEMax[0]);
                 nPE4Bars.push_back(nPEMax[1]);
                 nPE4Bars.push_back(nPEMax[2]);
                 nPE4Bars.push_back(nPEMax[3]);
-                SPnPE.push_back(nPEMax[3]); 
+                SPnPE.push_back(nPEMax[0]); 
                 duration4Bars.push_back(durationMax[0]);
                 duration4Bars.push_back(durationMax[1]);
                 duration4Bars.push_back(durationMax[2]);
                 duration4Bars.push_back(durationMax[3]);
-                std::cout << "uniqueBars.size(): " << uniqueBars.size() << std::endl;
-                std::cout << "Event Number: " << (event) << std::endl;
-                std::cout << "File Number: " << (fileNumber) << std::endl;
+                if (nPEMax[3] >= 150 ) {
+                    std::cout << "NPE " << nPEMax[3] << std::endl; 
+                    std::cout << "DtF " << DtF << std::endl;
+                    std::cout << "uniqueBars.size(): " << uniqueBars.size() << std::endl;
+                    std::cout << "Event Number: " << (event) << std::endl;
+                    std::cout << "File Number: " << (fileNumber) << std::endl;
+                }
                 
             }
 
