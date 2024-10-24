@@ -28,6 +28,7 @@ void MuonDatalowerbound() {
     std::vector<int> *row = 0;
     std::vector<int> *column = 0;
     std::vector<int> *layer = 0;
+    std::vector<int> *chan = 0;
     std::vector<int> *type = 0;
     std::vector<float> *nPE = 0;
     std::vector<int> *ipulse = 0;
@@ -39,6 +40,7 @@ void MuonDatalowerbound() {
     // Set branch addresses
     t->SetBranchAddress("row", &row);
     t->SetBranchAddress("column", &column);
+    t->SetBranchAddress("chan", &chan);
     t->SetBranchAddress("layer", &layer);
     t->SetBranchAddress("type", &type);
     t->SetBranchAddress("nPE", &nPE);
@@ -56,9 +58,13 @@ void MuonDatalowerbound() {
     std::vector<float> duration4Bars;
     std::vector<float> Dt;
     std::vector<float> SPnPE; //small pulse nPE distribution
+    std::vector<float> SChan; //the channel than has smallest pulse 
+
     double nPEMax[4];
     double durationMax[4];
-    double Pulse4Max[4];
+    double Pulse4Max[4]; //save the pulse time data for the largest pulse(duration) at each row  0-3. 
+    double channel[4]; //save the channel number data for the largest pulse(duration) at each row  0-3. (used for singla delay analysis)
+
         
 
 
@@ -89,6 +95,15 @@ void MuonDatalowerbound() {
         Pulse4Max[1]=0;
         Pulse4Max[2]=0;
         Pulse4Max[3]=0;
+
+        channel[0]=-1;
+        channel[1]=-1;
+        channel[2]=-1;
+        channel[3]=-1;
+
+
+
+
 
 
         int numLargePulse = 0;
@@ -130,9 +145,11 @@ void MuonDatalowerbound() {
                         std::cout << "NPE " << (*nPE)[j] << "Row/Col/Layer: " << (*row)[j] << " " << (*column)[j] << " " << (*layer)[j] << std::endl;
                     
                         //find the max pusle duration at each row
+                        //and then collect the the corresponding channel number and row number
                         if((*duration)[j]>durationMax[(*row)[j]] ) { 
                             durationMax[(*row)[j]] = (*duration)[j];
-                            Pulse4Max[(*row)[j]] = (*timeFit_module_calibrated)[j];               
+                            Pulse4Max[(*row)[j]] = (*timeFit_module_calibrated)[j]; 
+                            channel[(*row)[j]] = (*chan)[j];          
                         }
 
 
@@ -166,9 +183,11 @@ void MuonDatalowerbound() {
 
             //find the last (bar)pulse
             double minVal = 3000.0;
+            int minChan = -1;
             for(int i = 0; i < 4; i++) {
                 if(Pulse4Max[i] < minVal){
                     minVal= Pulse4Max[i];
+                    minChan = channel[i]
                 }
              }
             
@@ -196,6 +215,7 @@ void MuonDatalowerbound() {
             //if ((uniqueBars.size() == 5) && ((uniqueBars.size() == 4))){
             if (uniqueBars.size() >= 4 && uniqueBars.size() <= 10 ){
                 Dt.push_back(DtF);
+                SChan.push_back(minChan);
                 nPE4Bars.push_back(nPEMax[0]);
                 nPE4Bars.push_back(nPEMax[1]);
                 nPE4Bars.push_back(nPEMax[2]);
@@ -287,4 +307,12 @@ void MuonDatalowerbound() {
        SPnPEDt->Fill(SPnPE[k],Dt[k]);
    }
    SPnPEDt->Draw("COLZ");
+
+   TCanvas *c7 = new TCanvas("c7", "c7", 800, 600);
+   TH2F *lagChanDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 80, 0, 80,30,0,30); 
+   for (size_t k = 0; k < Dt.size(); k++) {
+       lagChanDt->Fill(SChan[k],Dt[k]);
+   }
+   lagChanDt->Draw("COLZ");
+
 }
