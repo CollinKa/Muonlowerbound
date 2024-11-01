@@ -20,8 +20,8 @@ with muon like hits search for the pulse delay from the small pulses.
 void MuonDatalowerbound() {
     // Open the file and get the TTree
     //TFile *file = TFile::Open("/net/cms17/cms17r0/schmitz/milliQanMerged/MilliQan_Run1176.root"); //V34 merged
-    TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/M1176V35_merged.root");
-    //TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/merged_output.root");
+    //TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/M1176V35_merged.root");
+    TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/merged_output.root");
     //TFile *file = TFile::Open("Run1679.root");
     TTree *t = (TTree*)file->Get("t");
 
@@ -177,7 +177,8 @@ void MuonDatalowerbound() {
                 }
             }
             //if(nPEMax[0]<70 && nPEMax[0]>20  && nPEMax[1]<70 && nPEMax[1]>20  && nPEMax[2]<70 && nPEMax[2]>20  && nPEMax[3]<70 && nPEMax[3]>20){
-            if(nPEMax[2] > 100  && nPEMax[1]>100 && nPEMax[3]>100){
+            if(nPEMax[3] > 100  && nPEMax[2]>100 && nPEMax[1]>100){
+            
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
             //if(nPEMax[0]>200 && nPEMax[1]> 200  && nPEMax[2]> 200  && nPEMax[3]> 200){
             //find the number of large pulse and  small pulse
@@ -229,17 +230,22 @@ void MuonDatalowerbound() {
             }
             */
             
-
+            //find the min pulse NPE from nPEMax (for delay analysis)
+            double minNPEdelay = 1000;
+            for (size_t k = 0; k < 4; k++) {
+               if (nPEMax[k] < minNPEdelay) {minNPEdelay = nPEMax[k];}
+            }
 
             //if ((uniqueBars.size() == 5) && ((uniqueBars.size() == 4))){
-            if (uniqueBars.size() >= 4 && uniqueBars.size() <= 10 ){
+            if (uniqueBars.size() >= 4 && uniqueBars.size() <= 6 ){
                 Dt.push_back(DtF);
                 SChan.push_back(minChan);
                 nPE4Bars.push_back(nPEMax[0]);
                 nPE4Bars.push_back(nPEMax[1]);
                 nPE4Bars.push_back(nPEMax[2]);
                 nPE4Bars.push_back(nPEMax[3]);
-                SPnPE.push_back(nPEMax[0]); 
+                //SPnPE.push_back(nPEMax[0]);  //Previously, I only collect the NPE at the row that doesn't have large cut.
+                SPnPE.push_back(minNPEdelay); //in delay analysis we want to see delay vs min pulse relationship.
                 duration4Bars.push_back(durationMax[0]);
                 duration4Bars.push_back(durationMax[1]);
                 duration4Bars.push_back(durationMax[2]);
@@ -328,12 +334,22 @@ void MuonDatalowerbound() {
    SPnPEDt->Draw("COLZ");
 
    TCanvas *c7 = new TCanvas("c7", "c7", 800, 600);
-   TH2F *lagChanDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 80, 0, 80,30,0,30); 
+   TH2F *lagChanDt = new TH2F("lagChanDt", "chan vs Dt;chan;Dt(ns)", 80, 0, 80,30,0,30); 
    for (size_t k = 0; k < Dt.size(); k++) {
        if (Dt[k] > 6) {  // only have interst in Dt > 6 data
            lagChanDt->Fill(SChan[k],Dt[k]);
        }
    }
    lagChanDt->Draw("COLZ");
+
+   TCanvas *c8 = new TCanvas("c8", "c8", 800, 600);
+   TH1F *lasthit = new TH1F("lasthit", "Dt > 10 ns. last hit channel;chan;# number of event", 80, 0, 80);
+   for (size_t k = 0; k < Dt.size(); k++) {
+       if (Dt[k] > 10) {
+           lasthit->Fill(SChan[k]);
+       }
+   }
+   lasthit->Draw();
+
 
 }
