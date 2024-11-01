@@ -21,6 +21,7 @@ void MuonDatalowerbound() {
     // Open the file and get the TTree
     //TFile *file = TFile::Open("/net/cms17/cms17r0/schmitz/milliQanMerged/MilliQan_Run1176.root"); //V34 merged
     TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/M1176V35_merged.root");
+    //TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/merged_output.root");
     //TFile *file = TFile::Open("Run1679.root");
     TTree *t = (TTree*)file->Get("t");
 
@@ -34,6 +35,10 @@ void MuonDatalowerbound() {
     std::vector<int> *ipulse = 0;
     std::vector<float> *duration = 0;
     std::vector<float> *timeFit_module_calibrated = 0;
+    std::vector<bool> *pickupFlag;
+    Bool_t boardsMatched;   
+
+
     Long64_t fileNumber = 0;
     Int_t event = 0; //event number
 
@@ -49,6 +54,8 @@ void MuonDatalowerbound() {
     t->SetBranchAddress("event", &event);
     t->SetBranchAddress("duration", &duration);
     t->SetBranchAddress("timeFit_module_calibrated", &timeFit_module_calibrated);
+    t->SetBranchAddress("boardsMatched", &boardsMatched);
+    t->SetBranchAddress("pickupFlag", &pickupFlag);
 
     Long64_t nentries = t->GetEntries();
 
@@ -76,7 +83,7 @@ void MuonDatalowerbound() {
         bool panelHit1 = false;
         bool barHit1 = false;
         bool panelHit2 = false;
-        bool barHit2 = false;
+        bool barHit2 = false; 
         bigLayer=-2;
         std::set<int> uniqueBars;
 
@@ -109,10 +116,16 @@ void MuonDatalowerbound() {
         int numLargePulse = 0;
         int numSmallPulse = 0;
 
+        //boardmatching check
+        if (boardsMatched == 0) {continue;}
+        
 
 
         // Loop through all hits in the event
         for (size_t j = 0; j < row->size(); j++) {
+              
+            //pickup check
+            if ((*pickupFlag)[j] == 1) {continue;}
             // Check for hits in panels with nPE > 10000
             if ((*ipulse)[j]==0 && (*type)[j]==2 && (*row)[j] == 4 && ((*layer)[j] == 0 ) && (*nPE)[j] > 30000  && (*timeFit_module_calibrated)[j]>1250 && (*timeFit_module_calibrated)[j]<1350 ) {
                 panelHit1 = true;
@@ -120,7 +133,8 @@ void MuonDatalowerbound() {
             if ((*ipulse)[j]==0 && (*type)[j]==0 && (*row)[j] == 0 && ((*layer)[j] == 0 || (*layer)[j] == 1) && (*nPE)[j] > 50 && (*timeFit_module_calibrated)[j]>1250 && (*timeFit_module_calibrated)[j]<1350 ) {
                 barHit1 = true;
                 bigLayer=(*layer)[j];
-//                if((*nPE)[j]>nPEMax[0]) nPEMax[0]=(*nPE)[j];
+                 
+                // if((*nPE)[j]>nPEMax[0]) nPEMax[0]=(*nPE)[j];
                 //cout << "big hit! NPE " << (*nPE)[j] << "Row/Col/Layer: " << (*row)[j] << " " << (*column)[j] << " " << (*layer)[j] << std::endl;
             }
             // Check for hits in the bottom row with nPE > 10
@@ -134,6 +148,11 @@ void MuonDatalowerbound() {
                 //cout << "big hit! NPE " << (*nPE)[j] << "Row/Col/Layer: " << (*row)[j] << " " << (*column)[j] << " " << (*layer)[j] << std::endl;
             }
         }
+        
+
+
+        
+
 
         // If both conditions are satisfied, count unique hits with nPE > 0.5
         if ((panelHit1 && barHit1) || (panelHit2 && barHit2)) {
@@ -158,7 +177,7 @@ void MuonDatalowerbound() {
                 }
             }
             //if(nPEMax[0]<70 && nPEMax[0]>20  && nPEMax[1]<70 && nPEMax[1]>20  && nPEMax[2]<70 && nPEMax[2]>20  && nPEMax[3]<70 && nPEMax[3]>20){
-            if(nPEMax[1] > 100  && nPEMax[2]>100 && nPEMax[3]>100){
+            if(nPEMax[2] > 100  && nPEMax[1]>100 && nPEMax[3]>100){
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
             //if(nPEMax[0]>200 && nPEMax[1]> 200  && nPEMax[2]> 200  && nPEMax[3]> 200){
             //find the number of large pulse and  small pulse
@@ -187,7 +206,7 @@ void MuonDatalowerbound() {
             for(int i = 0; i < 4; i++) {
                 if(Pulse4Max[i] < minVal){
                     minVal= Pulse4Max[i];
-                    minChan = channel[i]
+                    minChan = channel[i];
                 }
              }
             
@@ -311,7 +330,9 @@ void MuonDatalowerbound() {
    TCanvas *c7 = new TCanvas("c7", "c7", 800, 600);
    TH2F *lagChanDt = new TH2F("SPnPEDt", "npe vs Dt;nPE;Dt(ns)", 80, 0, 80,30,0,30); 
    for (size_t k = 0; k < Dt.size(); k++) {
-       lagChanDt->Fill(SChan[k],Dt[k]);
+       if (Dt[k] > 6) {  // only have interst in Dt > 6 data
+           lagChanDt->Fill(SChan[k],Dt[k]);
+       }
    }
    lagChanDt->Draw("COLZ");
 
