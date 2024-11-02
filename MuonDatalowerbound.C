@@ -85,7 +85,8 @@ void MuonDatalowerbound() {
         bool panelHit2 = false;
         bool barHit2 = false; 
         bigLayer=-2;
-        std::set<int> uniqueBars;
+        std::set<int> uniqueBars; //number of unique bar get hits in the big hit layer 
+        std::set<int> uniqueBarsE; //number of unique bar get hits in the entire event 
 
         nPEMax[0]=0;
         nPEMax[1]=0;
@@ -126,6 +127,15 @@ void MuonDatalowerbound() {
               
             //pickup check
             if ((*pickupFlag)[j] == 1) {continue;}
+            
+
+            // count the number of channel get hit in the entire event. Wish to find the clean event by requiring less than 8 channel get hit. 
+            if((*ipulse)[j]==0 && (*type)[j]==0 && (*nPE)[j] > 2){uniqueBarsE.insert((*chan)[j]);}
+
+
+
+
+
             // Check for hits in panels with nPE > 10000
             if ((*ipulse)[j]==0 && (*type)[j]==2 && (*row)[j] == 4 && ((*layer)[j] == 0 ) && (*nPE)[j] > 30000  && (*timeFit_module_calibrated)[j]>1250 && (*timeFit_module_calibrated)[j]<1350 ) {
                 panelHit1 = true;
@@ -150,7 +160,7 @@ void MuonDatalowerbound() {
         }
         
 
-
+        if (uniqueBarsE.size() > 8) {continue;} //skip the event
         
 
 
