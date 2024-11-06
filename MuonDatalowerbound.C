@@ -20,8 +20,9 @@ with muon like hits search for the pulse delay from the small pulses.
 void MuonDatalowerbound() {
     // Open the file and get the TTree
     //TFile *file = TFile::Open("/net/cms17/cms17r0/schmitz/milliQanMerged/MilliQan_Run1176.root"); //V34 merged
-    //TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/M1176V35_merged.root");
-    TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/merged_output.root");
+    
+    TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/M1176V35_merged.root");
+    //TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/merged_output.root");
     //TFile *file = TFile::Open("Run1679.root");
     TTree *t = (TTree*)file->Get("t");
 
@@ -187,7 +188,7 @@ void MuonDatalowerbound() {
                 }
             }
             //if(nPEMax[0]<70 && nPEMax[0]>20  && nPEMax[1]<70 && nPEMax[1]>20  && nPEMax[2]<70 && nPEMax[2]>20  && nPEMax[3]<70 && nPEMax[3]>20){
-            if(nPEMax[3] > 100  && nPEMax[2]>100 && nPEMax[1]>100){
+            if(nPEMax[0] > 100  && nPEMax[1]>100 && nPEMax[3]>100){
             
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
             //if(nPEMax[0]>200 && nPEMax[1]> 200  && nPEMax[2]> 200  && nPEMax[3]> 200){
@@ -353,13 +354,38 @@ void MuonDatalowerbound() {
    lagChanDt->Draw("COLZ");
 
    TCanvas *c8 = new TCanvas("c8", "c8", 800, 600);
-   TH1F *lasthit = new TH1F("lasthit", "Dt > 10 ns. last hit channel;chan;# number of event", 80, 0, 80);
+   TH1F *lasthit = new TH1F("lasthit", "Dt > 10 ns and min npE < 100. last hit channel;chan;# number of event", 80, 0, 80);
    for (size_t k = 0; k < Dt.size(); k++) {
-       if (Dt[k] > 10) {
+       if (Dt[k] > 10 && SPnPE[k] < 100) {
            lasthit->Fill(SChan[k]);
        }
    }
    lasthit->Draw();
 
+   TCanvas *c9 = new TCanvas("c9", "c9", 800, 600);
+   TH1F *lasthit100 = new TH1F("lasthit100", "Dt > 10 ns and min npE > 100. last hit channel;chan;# number of event", 80, 0, 80);
+   for (size_t k = 0; k < Dt.size(); k++) {
+      if (Dt[k] > 10 && SPnPE[k] > 100) {
+          lasthit100->Fill(SChan[k]);
+      }
+   }
+   lasthit100 ->Draw();
 
+
+    TCanvas *c10 = new TCanvas("c10", "c10", 800, 600);
+    TH1F *layerhist = new TH1F("layerhist", "layer distibution Dt > 10 ns and min npE < 100;layer;# number of event", 4, 0, 4);
+    int layerj = -1;
+    for (size_t k = 0; k < Dt.size(); k++) {
+      if (Dt[k] > 10 && SPnPE[k] < 100) {
+         if (SChan[k]>=78) {layerj = 1;}  
+         else {layerj= SChan[k] / 16;}
+         layerhist->Fill(layerj);         
+      }
+   } 
+   layerhist->Draw();
+
+
+   
+   
+  
 }
