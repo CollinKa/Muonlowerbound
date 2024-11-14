@@ -20,7 +20,6 @@ with muon like hits search for the pulse delay from the small pulses.
 void MuonDatalowerbound() {
     // Open the file and get the TTree
     //TFile *file = TFile::Open("/net/cms17/cms17r0/schmitz/milliQanMerged/MilliQan_Run1176.root"); //V34 merged
-    
     TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/M1176V35_merged.root");
     //TFile *file = TFile::Open("/net/cms26/cms26r0/zheng/barsim/ExtraValidationR/merged_output.root");
     //TFile *file = TFile::Open("Run1679.root");
@@ -109,6 +108,7 @@ void MuonDatalowerbound() {
         channel[1]=-1;
         channel[2]=-1;
         channel[3]=-1;
+	double panelTime = 0; //first large hit time for the panel
 
 
 
@@ -168,6 +168,16 @@ void MuonDatalowerbound() {
         // If both conditions are satisfied, count unique hits with nPE > 0.5
         if ((panelHit1 && barHit1) || (panelHit2 && barHit2)) {
             for (size_t j = 0; j < row->size(); j++) {
+
+
+                //find the first hit of the panel
+                if((*row)[j]==4 && (*ipulse)[j]==0 && (*nPE)[j] > 30000 && (*timeFit_module_calibrated)[j]>1250 && (*timeFit_module_calibrated)[j]<1350 ){
+                    if ((1 == bigLayer || 0 == bigLayer) && 0 == (*layer)[j] ){
+                       panelTime = (*timeFit_module_calibrated)[j];
+                    } 
+                } 
+
+
                 if ((*ipulse)[j]==0 && (*type)[j] == 0 && (*nPE)[j] > 2  && (*timeFit_module_calibrated)[j]>1250 && (*timeFit_module_calibrated)[j]<1350 ) {
                     uniqueBars.insert((*row)[j]+4*(*column)[j]+16*(*layer)[j]);
                     if((*layer)[j]==bigLayer){
@@ -188,7 +198,7 @@ void MuonDatalowerbound() {
                 }
             }
             //if(nPEMax[0]<70 && nPEMax[0]>20  && nPEMax[1]<70 && nPEMax[1]>20  && nPEMax[2]<70 && nPEMax[2]>20  && nPEMax[3]<70 && nPEMax[3]>20){
-            if(nPEMax[0] > 100  && nPEMax[1]>100 && nPEMax[3]>100){
+            if(nPEMax[0]>100 && nPEMax[3]>100 && nPEMax[1]>100){
             
             //if(nPEMax[0]>50 && nPEMax[0]<100  && nPEMax[1]> 50 && nPEMax[1]< 100  && nPEMax[2]> 50 && nPEMax[2]< 100  && nPEMax[3]> 50  && nPEMax[3]< 100){
             //if(nPEMax[0]>200 && nPEMax[1]> 200  && nPEMax[2]> 200  && nPEMax[3]> 200){
@@ -224,7 +234,8 @@ void MuonDatalowerbound() {
             
             //find the event that max Dt < 5ns for pulse in big hit layer
             //if (maxVal - minVal <= 3){
-            double DtF = maxVal - minVal;
+            //double DtF = maxVal - minVal; //method1
+            double DtF = panelTime - minVal; //method2
             nPEBars.push_back(nPEMax[0]);
             nPEBars.push_back(nPEMax[1]);
             nPEBars.push_back(nPEMax[2]);
@@ -248,15 +259,15 @@ void MuonDatalowerbound() {
             }
 
             //if ((uniqueBars.size() == 5) && ((uniqueBars.size() == 4))){
-            if (uniqueBars.size() >= 4 && uniqueBars.size() <= 6 ){
+            if (uniqueBars.size() >= 4 && uniqueBars.size() <= 10 ){
                 Dt.push_back(DtF);
                 SChan.push_back(minChan);
                 nPE4Bars.push_back(nPEMax[0]);
                 nPE4Bars.push_back(nPEMax[1]);
                 nPE4Bars.push_back(nPEMax[2]);
                 nPE4Bars.push_back(nPEMax[3]);
-                //SPnPE.push_back(nPEMax[0]);  //Previously, I only collect the NPE at the row that doesn't have large cut.
-                SPnPE.push_back(minNPEdelay); //in delay analysis we want to see delay vs min pulse relationship.
+                SPnPE.push_back(nPEMax[2]);  //Previously, I only collect the NPE at the row that doesn't have large cut.
+                //SPnPE.push_back(minNPEdelay); //in delay analysis we want to see delay vs min pulse relationship.
                 duration4Bars.push_back(durationMax[0]);
                 duration4Bars.push_back(durationMax[1]);
                 duration4Bars.push_back(durationMax[2]);
@@ -347,11 +358,29 @@ void MuonDatalowerbound() {
    TCanvas *c7 = new TCanvas("c7", "c7", 800, 600);
    TH2F *lagChanDt = new TH2F("lagChanDt", "chan vs Dt;chan;Dt(ns)", 80, 0, 80,30,0,30); 
    for (size_t k = 0; k < Dt.size(); k++) {
-       if (Dt[k] > 6) {  // only have interst in Dt > 6 data
+       if (Dt[k] > 6 && SPnPE[k] < 100) {  // only have interst in Dt > 6ns data. 
            lagChanDt->Fill(SChan[k],Dt[k]);
        }
    }
    lagChanDt->Draw("COLZ");
+
+   TCanvas *c7b = new TCanvas("c7b", "c7b", 800, 600); 
+   //int Chansp = -1;
+   int MeanDt = -1;
+   int DtStd = -1;
+   double chansp[80], Dtsp[80];
+   for (int n=0; n < 80; n++){
+       TH1D *column_proj = lagChanDt->ProjectionY("column_proj", n, n);
+       MeanDt = column_proj->GetMean();
+       chansp[n] = n;
+       Dtsp[n]=MeanDt;
+   }   
+   TGraph *scatterPlot = new TGraph(80, chansp, Dtsp);
+   scatterPlot->SetTitle("Dt Mean with min NPE < 100;chan; mean DT");
+   scatterPlot->SetMarkerStyle(20);
+   scatterPlot->SetMarkerColor(kBlue);
+   scatterPlot->Draw("AP");
+   
 
    TCanvas *c8 = new TCanvas("c8", "c8", 800, 600);
    TH1F *lasthit = new TH1F("lasthit", "Dt > 10 ns and min npE < 100. last hit channel;chan;# number of event", 80, 0, 80);
